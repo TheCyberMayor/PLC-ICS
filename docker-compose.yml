@@ -1,0 +1,49 @@
+# Placeholder: Docker Compose content
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: plc_crm_backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app:/app/app
+      - ./api:/app/api
+      - ./data:/app/data
+      - ./models:/app/models
+    restart: always
+
+  grafana:
+    image: grafana/grafana
+    container_name: plc_crm_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./dashboard/grafana-dashboards:/etc/grafana/provisioning/dashboards
+      - ./dashboard/grafana-datasource:/etc/grafana/provisioning/datasources
+    depends_on:
+      - backend
+    restart: always
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: plc_crm_influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=admin123
+      - DOCKER_INFLUXDB_INIT_ORG=plcorg
+      - DOCKER_INFLUXDB_INIT_BUCKET=plcbucket
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=supersecrettoken
+    restart: always
+
+volumes:
+  influxdb_data:
